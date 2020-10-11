@@ -128,7 +128,7 @@
 </template>
 
 <script lang="ts">
-import { SvgPath } from "@/models";
+import { ISvgPath } from "shared";
 import { computed, defineComponent, ref } from "vue";
 import ColorSelector from "./ColorSelector.vue";
 
@@ -144,7 +144,7 @@ export default defineComponent({
 
   setup() {
     const currentLine = ref("");
-    const lines = ref<SvgPath[]>([]);
+    const lines = ref<ISvgPath[]>([]);
     const isDrawing = ref(false);
     const traceRadius = ref(2.5);
     const strokeWidth = ref(8);
@@ -190,9 +190,11 @@ export default defineComponent({
         currentLine.value += `L${event.layerX}, ${event.layerY} `;
 
         lines.value.push({
+          id: -1,
           path: currentLine.value,
           strokeColor: lineColor.value,
           strokeWidth: strokeWidth.value,
+          createdTime: new Date(Date.now()),
         });
       }
 

@@ -25,11 +25,18 @@ const routes: Array<RouteRecordRaw> = [
     component: () =>
       import(/* webpackChunkName: "drawing" */ "../views/Drawing.vue"),
   },
+  {
+    path: "/test",
+    name: "Test",
+    // route level code-splitting
+    // this generates a separate chunk (Test.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () =>
+      import(/* webpackChunkName: "Test" */ "../views/wsTest.vue"),
+  },
 ];
 
-const router = createRouter({
+export const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
 });
-
-export default router;
