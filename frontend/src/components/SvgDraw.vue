@@ -88,7 +88,7 @@
         version="2.0"
         :width="canvasWidth"
         :height="canvasHeight"
-        style="background-color:#ccc"
+        style="background-color: #ccc"
         @mousedown.prevent="lineStart($event)"
         @touchstart="lineStart($event)"
         @mousemove="lineMove($event)"
@@ -115,9 +115,9 @@
 
         <!-- the current line -->
         <path
-          :d="currentLine"
-          :stroke="lineColor"
-          :stroke-width="strokeWidth"
+          :d="currentLine.path"
+          :stroke="currentLine.strokeColor"
+          :stroke-width="currentLine.strokeWidth"
           fill="none"
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -128,34 +128,19 @@
 </template>
 
 <script lang="ts">
-import { ISvgPath } from "shared";
-import { computed, defineComponent, ref } from "vue";
+import { computed, defineComponent } from "vue";
+import { ActionTypes, Store, useStore } from "../store";
 import ColorSelector from "./ColorSelector.vue";
 
-// import { compact } from "vue-color";
-
 export default defineComponent({
-  // name: "SvgDraw",
+  name: "SvgDraw",
 
   components: {
     ColorSelector,
-    // "compact-picker": compact,
   },
 
   setup() {
-    const currentLine = ref("");
-    const lines = ref<ISvgPath[]>([]);
-    const isDrawing = ref(false);
-    const traceRadius = ref(2.5);
-    const strokeWidth = ref(8);
-    const undo = ref(false);
-
-    const title = ref("Freehand SVG Draw");
-
-    const lineColorDefault = "#292929";
-    const lineColor = ref(lineColorDefault);
-    const bgColorDefault = "#EAEAEA";
-    const bgColor = ref(bgColorDefault);
+    const store: Store = useStore();
 
     const canvasWidth = computed(() => {
       return 1280;
@@ -166,58 +151,72 @@ export default defineComponent({
       // return 1080;
     });
 
+    const title = store.getters.getTitle;
+    const currentLine = store.getters.getCurrentLine;
+
+    const lineColor = computed<string>({
+      get: () => {
+        return store.state.currentLine.strokeColor;
+      },
+      set: (color) => {
+        store.dispatch(ActionTypes.UpdateLineColor, color);
+      },
+    });
+
+    const bgColor = computed<string>({
+      get: () => {
+        return store.state.settings.backgroundColor;
+      },
+      set: (color) => {
+        store.dispatch(ActionTypes.UpdateBackgroundColor, color);
+      },
+    });
+    const undo = store.getters.canUndoLine;
+
+    const lines = store.state.lines;
+
     // Line Movements
 
     function lineStart(event: MouseEvent & { layerX: number; layerY: number }) {
       console.log("lineStart:", event);
-      isDrawing.value = true;
-      undo.value = true;
-
-      currentLine.value += `M${event.layerX},${event.layerY} `;
+      store.dispatch(ActionTypes.StartDrawing, {
+        x: event.layerX,
+        y: event.layerY,
+      });
     }
 
     function lineMove(event: MouseEvent & { layerX: number; layerY: number }) {
-      // console.log("lineMove:", event);
+      console.log(
+        "State of is Drawing is: " + store.state.currentLine.isDrawing
+      );
 
-      if (isDrawing.value) {
-        currentLine.value += `L${event.layerX},${event.layerY} `;
+      if (store.state.currentLine.isDrawing) {
+        console.log("lineMove:", event);
+
+        store.dispatch(ActionTypes.DrawTo, {
+          x: event.layerX,
+          y: event.layerY,
+        });
       }
     }
 
     function lineEnd(event: MouseEvent & { layerX: number; layerY: number }) {
       console.log("lineEnd:", event);
-      if (isDrawing.value) {
-        currentLine.value += `L${event.layerX}, ${event.layerY} `;
 
-        lines.value.push({
-          id: -1,
-          path: currentLine.value,
-          strokeColor: lineColor.value,
-          strokeWidth: strokeWidth.value,
-          createdTime: new Date(Date.now()),
-        });
-      }
-
-      isDrawing.value = false;
-      currentLine.value = "";
+      store.dispatch(ActionTypes.EndDrawing, {
+        x: event.layerX,
+        y: event.layerY,
+      });
     }
 
     // Image Changes
 
     function undoLine() {
-      lines.value.pop();
-
-      if (lines.value.length == 0) {
-        undo.value = false;
-      }
+      store.dispatch(ActionTypes.UndoLastLine, undefined);
     }
 
     function clean() {
-      lines.value = [];
-      undo.value = false;
-
-      // lineColor.value = lineColorDefault;
-      // bgColor.value = bgColorDefault;
+      store.dispatch(ActionTypes.clearCanvas, undefined);
     }
 
     function download() {
@@ -226,16 +225,13 @@ export default defineComponent({
 
     return {
       title,
-      lineColor,
-      bgColor,
-
-      undo,
-      isDrawing,
       currentLine,
-      lines,
+      lineColor,
 
-      traceRadius,
-      strokeWidth,
+      bgColor,
+      undo,
+
+      lines,
 
       canvasWidth,
       canvasHeight,

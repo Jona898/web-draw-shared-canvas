@@ -9,6 +9,7 @@ const server = http_createServer(app);
 
 const webSocketServer = new Server({ server, path: "/ws" });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const svgWebSocketServer = new SvgWebSocketServer(webSocketServer);
 
 app.use(SvgRouter);

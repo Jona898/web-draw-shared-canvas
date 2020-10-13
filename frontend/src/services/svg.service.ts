@@ -4,7 +4,7 @@ import {
   Message,
   MessageNames,
   WsErrorMessage,
-} from "shared";
+} from "web-draw-shared-canvas-shared";
 
 export class SvgWebSocketService {
   // -----------------------------------
@@ -22,7 +22,7 @@ export class SvgWebSocketService {
     this.socket = new WebSocket(`ws://${host}:${port}/${path}`);
 
     // Open the socket
-    this.socket.onopen = event => {
+    this.socket.onopen = (event) => {
       // Log the OnOpenEvent
       console.log(event);
 
@@ -112,7 +112,7 @@ export class SvgWebSocketService {
   // ---------- TEST ----------
   // -----------------------------------
 
-  public sendMsgTest(payload: string) {
+  public sendMsgTest(payload: string): void {
     this.sendData({
       type: MessageNames.Test,
       payload: payload,
@@ -127,7 +127,7 @@ export class SvgWebSocketService {
   // ---------- Update Settings ----------
   // -----------------------------------
 
-  public sendMsgUpdateSettings(payload: ISvgSettings) {
+  public sendMsgUpdateSettings(payload: ISvgSettings): void {
     this.sendData({
       type: MessageNames.UpdateSettings,
       payload: payload,
@@ -144,7 +144,7 @@ export class SvgWebSocketService {
   // ---------- Update Last Line ----------
   // -----------------------------------
 
-  public sendMsgUpdateLastLine(payload: ISvgPath) {
+  public sendMsgUpdateLastLine(payload: ISvgPath): void {
     this.sendData({
       type: MessageNames.UpdateLastLine,
       payload: payload,
@@ -161,7 +161,7 @@ export class SvgWebSocketService {
   // ---------- Error Message ----------
   // -----------------------------------
 
-  public sendMsgError(payload: WsErrorMessage) {
+  public sendMsgError(payload: WsErrorMessage): void {
     this.sendData({
       type: MessageNames.Error,
       payload: payload,

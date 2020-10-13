@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { ISvgSettings } from "shared";
+import { ISvgSettings } from "web-draw-shared-canvas-shared";
 import { defineComponent } from "vue";
 import { svgWebSocketService } from "../services";
 
@@ -32,7 +32,7 @@ export default defineComponent({
     const sendUpdateSettings = () => {
       console.log("Send Update Settings");
       svgWsService.sendMsgUpdateSettings({
-        name: "SomeTestName",
+        title: "SomeTestName",
         backgroundColor: "#086482",
       } as ISvgSettings);
     };

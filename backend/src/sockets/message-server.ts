@@ -38,6 +38,25 @@ export abstract class MessageServer<T> {
     });
   }
 
+  protected broadcastAll(message: Readonly<T>): void {
+    // let clients1: string[] = [];
+    // let clients2: string[] = [];
+
+    // this.wsServer.clients.forEach((value, value2, set) => {
+    //   clients1.push(JSON.stringify(value));
+    //   clients2.push(JSON.stringify(value2));
+    // });
+
+    // console.log(`const clients1= [${clients1.join(",")}]`);
+    // console.log(`const clients2= [${clients2.join(",")}]`);
+
+    this.wsServer.clients.forEach((client) => {
+      if (this.isAlive(client)) {
+        client.send(JSON.stringify(message));
+      }
+    });
+  }
+
   protected replyTo(client: ws_WebSocket, message: Readonly<T>): void {
     client.send(JSON.stringify(message));
   }

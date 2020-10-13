@@ -9,7 +9,11 @@
     "removeComments": true,
     "esModuleInterop": true,
     "sourceMap": true,
-    "baseUrl": "./"
+    "baseUrl": "./",
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "lib": ["es6"]
   },
   "include": [
     "src/**/*.ts",

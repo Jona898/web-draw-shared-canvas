@@ -18,7 +18,10 @@ export class SvgController {
     // });
   }
 
-  public GetSvgComplete = async (req: Request, res: Response): Promise<any> => {
+  public GetSvgComplete = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     logger.info("Get Svg Complete");
     logger.info({ svgSettingsDb: this.svgSettingsDb });
 

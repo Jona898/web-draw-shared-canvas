@@ -56,7 +56,7 @@ export default defineComponent({
   setup(props, { emit }) {
     const activeColor = computed({
       get: () => props.currentColor,
-      set: val => emit("update:currentColor", val),
+      set: (val) => emit("update:currentColor", val),
     });
 
     return {

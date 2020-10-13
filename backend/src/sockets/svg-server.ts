@@ -3,6 +3,12 @@ import * as ws_WebSocket from "ws";
 import { MessageServer } from "./";
 
 export class SvgWebSocketServer extends MessageServer<Message<MessageNames>> {
+  private _nextClientId = 1;
+
+  public get nextClientId(): number {
+    return this._nextClientId++;
+  }
+
   protected handleMessage(
     sender: ws_WebSocket,
     message: Message<MessageNames>
@@ -13,21 +19,32 @@ export class SvgWebSocketServer extends MessageServer<Message<MessageNames>> {
       case MessageNames.Test:
         this.handleTest(sender, message as Message<MessageNames.Test>);
         break;
+
+      case MessageNames.GetClientID:
+        this.handleGetClientId(
+          sender,
+          message as Message<MessageNames.GetClientID>
+        );
+        break;
+
       case MessageNames.UpdateLastLine:
         this.handleUpdateLastLine(
           sender,
           message as Message<MessageNames.UpdateLastLine>
         );
         break;
+
       case MessageNames.UpdateSettings:
         this.handleUpdateSettings(
           sender,
           message as Message<MessageNames.UpdateSettings>
         );
         break;
+
       case MessageNames.Error:
         this.handleError(sender, message as Message<MessageNames.Error>);
         break;
+
       default:
         console.error(`Received message of unknown type: "${message.type}"`);
         this.replyTo(sender, {
@@ -55,6 +72,17 @@ export class SvgWebSocketServer extends MessageServer<Message<MessageNames>> {
 
     this.broadcastExcept(sender, updatedMessage);
     this.replyTo(sender, updatedMessage);
+  }
+
+  private handleGetClientId(
+    sender: ws_WebSocket,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _message: Message<MessageNames.GetClientID>
+  ) {
+    this.replyTo(sender, {
+      type: MessageNames.SendClientID,
+      payload: this.nextClientId,
+    } as Message<MessageNames.SendClientID>);
   }
 
   private handleUpdateLastLine(

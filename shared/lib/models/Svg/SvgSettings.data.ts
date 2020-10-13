@@ -1,4 +1,4 @@
 export interface ISvgSettings {
-  name: string;
+  title: string;
   backgroundColor: string;
 }

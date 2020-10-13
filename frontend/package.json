@@ -1,5 +1,5 @@
 {
-  "name": "malflaeche_visable-hidden",
+  "name": "web-draw-shared-canvas-frontend",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
@@ -11,27 +11,30 @@
   "dependencies": {
     "core-js": "^3.6.5",
     "register-service-worker": "^1.7.1",
-    "shared": "file:../shared",
     "vue": "^3.0.0",
-    "vue-router": "^4.0.0-beta.11"
+    "vue-router": "^4.0.0-beta.13",
+    "vuex": "^4.0.0-0",
+    "web-draw-shared-canvas-shared": "file:../shared"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^2.33.0",
-    "@typescript-eslint/parser": "^2.33.0",
-    "@vue/cli-plugin-babel": "^4.5.6",
+    "@typescript-eslint/eslint-plugin": "^4.4.1",
+    "@typescript-eslint/parser": "^4.4.1",
+    "@vue/cli-plugin-babel": "^4.5.7",
     "@vue/cli-plugin-eslint": "^4.5.6",
-    "@vue/cli-plugin-pwa": "^4.5.6",
-    "@vue/cli-plugin-router": "^4.5.6",
-    "@vue/cli-plugin-typescript": "^4.5.6",
-    "@vue/cli-service": "^4.5.6",
+    "@vue/cli-plugin-pwa": "^4.5.7",
+    "@vue/cli-plugin-router": "^4.5.7",
+    "@vue/cli-plugin-typescript": "^4.5.7",
+    "@vue/cli-plugin-vuex": "^4.5.7",
+    "@vue/cli-service": "^4.5.7",
     "@vue/compiler-sfc": "^3.0.0",
     "@vue/eslint-config-prettier": "^6.0.0",
     "@vue/eslint-config-typescript": "^5.1.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-prettier": "^3.1.3",
-    "eslint-plugin-vue": "^7.0.0-beta.3",
+    "eslint": "^7.11.0",
+    "eslint-config-prettier": "^6.12.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-vue": "^7.0.1",
     "node-sass": "^4.12.0",
-    "prettier": "^1.19.1",
+    "prettier": "^2.1.2",
     "sass-loader": "^8.0.2",
     "typescript": "^4.0.3"
   },
@@ -40,13 +43,21 @@
     "env": {
       "node": true
     },
+    "plugins": [
+      "@typescript-eslint",
+      "prettier"
+    ],
     "extends": [
-      "plugin:vue/vue3-recommended",
       "eslint:recommended",
+      "plugin:vue/vue3-recommended",
+      "prettier",
+      "prettier/vue",
+      "prettier/@typescript-eslint",
       "@vue/typescript/recommended",
       "@vue/prettier",
       "@vue/prettier/@typescript-eslint"
     ],
+    "parser": "vue-eslint-parser",
     "parserOptions": {
       "ecmaVersion": 2020
     },
