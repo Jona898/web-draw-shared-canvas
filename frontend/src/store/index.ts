@@ -12,15 +12,23 @@ import { Mutations, mutations, MutationTypes } from "./mutations";
 
 // Declare State
 type State = {
+  clientId: number;
+  lineId: number;
+
   settings: ISvgSettings;
 
   lines: ISvgPath[];
 
-  currentLine: Omit<ISvgPath, "id" | "createdTime"> & { isDrawing: boolean };
+  currentLine: Omit<ISvgPath, "id" | "createdTime"> & {
+    isDrawing: boolean;
+  };
 };
 
 // Set State
 const state: State = {
+  clientId: -1,
+  lineId: 1,
+
   settings: {
     title: "Freehand SVG Draw",
     backgroundColor: "#EAEAEA",
@@ -65,7 +73,7 @@ const store: Store = createStore({
 });
 
 function useStore(): Store {
-  return store as Store;
+  return store;
 }
 
-export { MutationTypes, ActionTypes, Store, State, store, useStore };
+export { MutationTypes, ActionTypes, Store, State, useStore };

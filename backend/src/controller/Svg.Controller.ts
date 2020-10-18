@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { ISvgCombined } from "shared";
+import { ISvgCombined } from "web-draw-shared-canvas-shared";
 import { SvgPathDao } from "../daos/SvgPath/SvgPathDao.mock";
 import { SvgSettingsDao } from "../daos/SvgSettings/SvgSettingsDao.mock";
 import { logger } from "../helpers/Logger";

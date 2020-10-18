@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Backend for the Drawing App to synchronise the Picture between multiple instanzes",
   "private": true,
-  "main": "index.js",
+  "main": "dist/index.js",
   "author": "Jonathan Schaeberle",
   "license": "MIT",
   "scripts": {
@@ -19,8 +19,8 @@
     "express": "^4.17.1",
     "http-status-codes": "^2.1.4",
     "jsonfile": "^6.0.1",
-    "shared": "file:../shared",
     "tslib": "^2.0.3",
+    "web-draw-shared-canvas-shared": "file:../shared",
     "winston": "^3.3.3",
     "ws": "^7.3.1"
   },

@@ -1,4 +1,8 @@
-import { Message, MessageNames, MessageTypes } from "shared";
+import {
+  Message,
+  MessageNames,
+  MessageTypes,
+} from "web-draw-shared-canvas-shared";
 import * as ws_WebSocket from "ws";
 import { MessageServer } from "./";
 
@@ -20,10 +24,10 @@ export class SvgWebSocketServer extends MessageServer<Message<MessageNames>> {
         this.handleTest(sender, message as Message<MessageNames.Test>);
         break;
 
-      case MessageNames.GetClientID:
+      case MessageNames.clientID:
         this.handleGetClientId(
           sender,
-          message as Message<MessageNames.GetClientID>
+          message as Message<MessageNames.clientID>
         );
         break;
 
@@ -77,12 +81,12 @@ export class SvgWebSocketServer extends MessageServer<Message<MessageNames>> {
   private handleGetClientId(
     sender: ws_WebSocket,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _message: Message<MessageNames.GetClientID>
+    _message: Message<MessageNames.clientID>
   ) {
     this.replyTo(sender, {
-      type: MessageNames.SendClientID,
+      type: MessageNames.clientID,
       payload: this.nextClientId,
-    } as Message<MessageNames.SendClientID>);
+    } as Message<MessageNames.clientID>);
   }
 
   private handleUpdateLastLine(

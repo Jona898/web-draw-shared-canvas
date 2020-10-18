@@ -1,5 +1,5 @@
 export interface ISvgPath {
-  id: number;
+  id: string;
   path: string;
   strokeColor: string;
   strokeWidth: number;

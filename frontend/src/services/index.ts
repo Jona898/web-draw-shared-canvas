@@ -1,9 +1,12 @@
 import { SvgWebSocketService } from "./svg.service";
 
-export const svgWebSocketService = new SvgWebSocketService(
-  "localhost",
-  9000,
-  "ws"
-);
+const { protocol, hostname } = window.location;
+
+export const svgWebSocketService = new SvgWebSocketService({
+  isSecore: protocol.includes("https"),
+  host: hostname,
+  port: 9000,
+  path: "ws",
+});
 
 export * from "./svg.service";

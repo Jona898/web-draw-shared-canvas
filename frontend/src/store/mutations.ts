@@ -15,6 +15,7 @@ export enum MutationTypes {
   UpdateBackgroundColor = "UPDATE_BACKGROUND_COLOR",
   UpdateLineColor = "UPDATE_LINE_COLOR",
   UndoLastLine = "UNDO_LAST_LINE",
+  SetClientId = "SET_CLIENT_ID",
 }
 
 // Define Mutation Prototypes
@@ -32,6 +33,8 @@ export interface Mutations<S = State> {
   [MutationTypes.UpdateLineColor](state: S, lineColor: string): void;
 
   [MutationTypes.UndoLastLine](state: S): void;
+
+  [MutationTypes.SetClientId](state: S, clientId: number): void;
 }
 
 // Define Mutations
@@ -42,7 +45,7 @@ export const mutations: MutationTree<State> & Mutations = {
   },
 
   [MutationTypes.StartDrawing](state: State, startPoint: Point) {
-    state.currentLine.path = `M${startPoint.x},${startPoint.y} `;
+    state.currentLine.path += `M${startPoint.x},${startPoint.y} `;
     state.currentLine.isDrawing = true;
   },
 
@@ -56,7 +59,7 @@ export const mutations: MutationTree<State> & Mutations = {
       state.currentLine.path += `L${endPoint.x},${endPoint.y}`;
 
       state.lines.push({
-        id: -1,
+        id: `${state.clientId}-${state.lineId++}`,
         path: state.currentLine.path,
         strokeColor: state.currentLine.strokeColor,
         strokeWidth: state.currentLine.strokeWidth,
@@ -78,5 +81,9 @@ export const mutations: MutationTree<State> & Mutations = {
 
   [MutationTypes.UndoLastLine](state: State) {
     state.lines.pop();
+  },
+
+  [MutationTypes.SetClientId](state: State, clientId: number) {
+    state.clientId = clientId;
   },
 };

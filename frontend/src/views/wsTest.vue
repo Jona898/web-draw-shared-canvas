@@ -16,13 +16,15 @@
 </template>
 
 <script lang="ts">
-import { ISvgSettings } from "web-draw-shared-canvas-shared";
 import { defineComponent } from "vue";
 import { svgWebSocketService } from "../services";
+import { useStore } from "../store";
 
 export default defineComponent({
   setup: () => {
     const svgWsService = svgWebSocketService;
+
+    const store = useStore();
 
     const sendTest = () => {
       console.log("Send Test");
@@ -34,13 +36,13 @@ export default defineComponent({
       svgWsService.sendMsgUpdateSettings({
         title: "SomeTestName",
         backgroundColor: "#086482",
-      } as ISvgSettings);
+      });
     };
 
     const sendUpdateLastLine = () => {
       console.log("Send Update Last Line");
       svgWsService.sendMsgUpdateLastLine({
-        id: 123,
+        id: `${store.state.clientId}-123`,
         path: "M10,90 L90,10",
         strokeColor: "#751612",
         strokeWidth: 9,

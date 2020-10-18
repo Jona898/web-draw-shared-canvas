@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
+    "target": "ES5",
+    "module": "CommonJS",
     "strict": true,
-    "importHelpers": true,
     "moduleResolution": "node",
     "outDir": "dist",
     "removeComments": true,
@@ -12,16 +11,8 @@
     "baseUrl": "./",
     "composite": true,
     "declaration": true,
-    "declarationMap": true,
-    "lib": ["es6"]
+    "lib": ["ES5"]
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue",
-    "lib/**/*.ts",
-    "lib/**/*.tsx",
-    "lib/**/*.vue"
-  ],
-  "exclude": ["node_modules"]
+  "include": ["src/", "lib/"],
+  "exclude": ["dist", "node_modules"]
 }

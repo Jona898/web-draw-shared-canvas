@@ -1,3 +1,4 @@
+import { ActionTypes, Store, useStore } from "@/store";
 import {
   ISvgPath,
   ISvgSettings,
@@ -13,13 +14,27 @@ export class SvgWebSocketService {
 
   private socket: WebSocket;
 
+  private store: Store;
+
   // -----------------------------------
   // ---------- Constructor ----------
   // -----------------------------------
 
-  constructor(host: string, port: number, path: string) {
+  constructor(options: {
+    isSecore: boolean;
+    host: string;
+    port: number;
+    path: string;
+  }) {
     // Create a socket instance
-    this.socket = new WebSocket(`ws://${host}:${port}/${path}`);
+    this.socket = new WebSocket(
+      `${options.isSecore ? "wss" : "ws"}://${options.host}:${options.port}/${
+        options.path
+      }`
+    );
+
+    // Get Vuex Store
+    this.store = useStore();
 
     // Open the socket
     this.socket.onopen = (event) => {
@@ -40,7 +55,12 @@ export class SvgWebSocketService {
         type: MessageNames.Test,
         payload: "I am the client and I'm listening!",
       });
+
+      // Get the Client Id
+      this.sendMsgRecieveClientId();
     };
+
+    this.ListenFromStore();
   }
 
   // -----------------------------------
@@ -65,6 +85,26 @@ export class SvgWebSocketService {
 
   private handleConnectionClose(event: CloseEvent) {
     console.log("Client notified socket has closed", event);
+  }
+
+  // -----------------------------------
+  // ---------- Handle Store Changes ----------
+  // -----------------------------------
+
+  private ListenFromStore() {
+    this.store.subscribeAction({
+      after: (action, state) => {
+        switch (action.type) {
+          case ActionTypes.EndDrawing:
+            console.log(`Current Line Count: ${state.lines.length}`);
+            this.sendMsgUpdateLastLine(state.lines[state.lines.length - 1]);
+            break;
+
+          default:
+            break;
+        }
+      },
+    });
   }
 
   // -----------------------------------
@@ -102,6 +142,10 @@ export class SvgWebSocketService {
         );
         break;
 
+      case MessageNames.clientID:
+        this.handleMsgRecieveClientId(data as Message<MessageNames.clientID>);
+        break;
+
       default:
         console.error(`Received message of unknown type: "${data.type}"`);
         break;
@@ -121,6 +165,21 @@ export class SvgWebSocketService {
 
   public handleMsgTest(message: Message<MessageNames.Test>): void {
     console.log(`Received Test Message ${message.payload}`);
+  }
+
+  // -----------------------------------
+  // ---------- Error Message ----------
+  // -----------------------------------
+
+  public sendMsgError(payload: WsErrorMessage): void {
+    this.sendData({
+      type: MessageNames.Error,
+      payload: payload,
+    } as Message<MessageNames.Error>);
+  }
+
+  public handleMsgError(message: Message<MessageNames.Error>): void {
+    console.log(`Received Error Message ${message.payload}`);
   }
 
   // -----------------------------------
@@ -158,18 +217,22 @@ export class SvgWebSocketService {
   }
 
   // -----------------------------------
-  // ---------- Error Message ----------
+  // ---------- Update Last Line ----------
   // -----------------------------------
 
-  public sendMsgError(payload: WsErrorMessage): void {
+  public sendMsgRecieveClientId(): void {
     this.sendData({
-      type: MessageNames.Error,
-      payload: payload,
-    } as Message<MessageNames.Error>);
+      type: MessageNames.clientID,
+      payload: undefined,
+    } as Message<MessageNames.clientID>);
   }
 
-  public handleMsgError(message: Message<MessageNames.Error>): void {
-    console.log(`Received Error Message ${message.payload}`);
+  public handleMsgRecieveClientId(
+    message: Message<MessageNames.clientID>
+  ): void {
+    console.log(`Received ClientId Message ${message.payload}`);
+    if (message.payload)
+      this.store.dispatch(ActionTypes.SetClientId, message.payload);
   }
 
   // -----------------------------------

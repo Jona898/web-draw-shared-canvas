@@ -16,6 +16,7 @@ export enum ActionTypes {
   UpdateBackgroundColor = "UPDATE_BACKGROUND_COLOR",
   UpdateLineColor = "UPDATE_LINE_COLOR",
   UndoLastLine = "UNDO_LAST_LINE",
+  SetClientId = "SET_CLIENT_ID",
 }
 
 // Actions interface
@@ -53,6 +54,11 @@ export interface Actions {
   ): void;
 
   [ActionTypes.UndoLastLine]({ commit }: AugmentedActionContext): void;
+
+  [ActionTypes.SetClientId](
+    { commit }: AugmentedActionContext,
+    clientId: number
+  ): void;
 }
 
 // define Actions
@@ -83,5 +89,9 @@ export const actions: ActionTree<State, State> & Actions = {
 
   [ActionTypes.UndoLastLine]({ commit }) {
     commit(MutationTypes.UndoLastLine, undefined);
+  },
+
+  [ActionTypes.SetClientId]({ commit }, clientId: number) {
+    commit(MutationTypes.SetClientId, clientId);
   },
 };

@@ -4,8 +4,7 @@ import { WsErrorMessage } from "./ErrorMessage";
 export enum MessageNames {
   Error = "ERROR",
   Test = "TEST",
-  GetClientID = "GET_CLIENT_ID",
-  SendClientID = "SEND_CLIENT_ID",
+  clientID = "CLIENT_ID",
   UpdateLastLine = "UPDATE_LAST_LINE",
   UpdateSettings = "UPDATE_SETTINGS",
 }
@@ -20,8 +19,7 @@ export interface MessageTypes extends MessageGeneric {
   [MessageNames.Test]: string;
   [MessageNames.UpdateSettings]: ISvgSettings;
   [MessageNames.UpdateLastLine]: ISvgPath;
-  [MessageNames.GetClientID]: void;
-  [MessageNames.SendClientID]: number;
+  [MessageNames.clientID]: number | undefined;
 }
 
 export interface Message<T extends keyof MessageTypes> {
