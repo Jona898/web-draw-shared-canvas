@@ -1,16 +1,36 @@
 import {
+  ISvgPath,
+  ISvgSettings,
   Message,
   MessageNames,
   MessageTypes,
 } from "web-draw-shared-canvas-shared";
 import * as ws_WebSocket from "ws";
-import { MessageServer } from "./";
+import { MessageServer } from ".";
 
 export class SvgWebSocketServer extends MessageServer<Message<MessageNames>> {
-  private _nextClientId = 1;
+  private _nextClientId;
 
   public get nextClientId(): number {
     return this._nextClientId++;
+  }
+
+  private allSvgLines: ISvgPath[];
+  private svgSettings: ISvgSettings;
+
+  constructor(wsServer: ws_WebSocket.Server) {
+    super(wsServer);
+
+    this._nextClientId = 1;
+    this.allSvgLines = [];
+    this.svgSettings = {
+      title: "Freehand SVG Draw",
+      backgroundColor: "#EAEAEA",
+    };
+  }
+
+  protected onStartConnection(socket: ws_WebSocket): void {
+    this.handleGetAllLines(socket);
   }
 
   protected handleMessage(
@@ -21,44 +41,63 @@ export class SvgWebSocketServer extends MessageServer<Message<MessageNames>> {
 
     switch (message.type) {
       case MessageNames.Test:
-        this.handleTest(sender, message as Message<MessageNames.Test>);
+        this.handleTest(sender, <Message<MessageNames.Test>>message);
         break;
 
-      case MessageNames.clientID:
-        this.handleGetClientId(
-          sender,
-          message as Message<MessageNames.clientID>
-        );
+      case MessageNames.ClientID:
+        this.handleGetClientId(sender);
         break;
 
-      case MessageNames.UpdateLastLine:
-        this.handleUpdateLastLine(
+      case MessageNames.AddLine:
+        this.handleAddLine(sender, <Message<MessageNames.AddLine>>message);
+        break;
+
+      case MessageNames.UpdateLine:
+        this.handleUpdateLine(
           sender,
-          message as Message<MessageNames.UpdateLastLine>
+          <Message<MessageNames.UpdateLine>>message
         );
         break;
 
       case MessageNames.UpdateSettings:
         this.handleUpdateSettings(
           sender,
-          message as Message<MessageNames.UpdateSettings>
+          <Message<MessageNames.UpdateSettings>>message
+        );
+        break;
+
+      case MessageNames.ClearCanvas:
+        this.handleClearCanvas(
+          sender,
+          <Message<MessageNames.ClearCanvas>>message
         );
         break;
 
       case MessageNames.Error:
-        this.handleError(sender, message as Message<MessageNames.Error>);
+        this.handleError(sender, <Message<MessageNames.Error>>message);
+        break;
+
+      case MessageNames.SendAllLines:
+        this.handleSendAllLines(
+          sender,
+          <Message<MessageNames.SendAllLines>>message
+        );
+        break;
+
+      case MessageNames.GetAllLines:
+        this.handleGetAllLines(sender);
         break;
 
       default:
         console.error(`Received message of unknown type: "${message.type}"`);
-        this.replyTo(sender, {
+        this.replyTo(sender, <Message<MessageNames.Error>>{
           correlationId: "Error",
           type: MessageNames.Error,
           payload: {
             title: `Type ${message.type} could not be evaluated`,
             message: `Handler for Message Type is not defined in Backend`,
           },
-        } as Message<MessageNames.Error>);
+        });
         break;
     }
   }
@@ -74,25 +113,40 @@ export class SvgWebSocketServer extends MessageServer<Message<MessageNames>> {
       ),
     };
 
-    this.broadcastExcept(sender, updatedMessage);
     this.replyTo(sender, updatedMessage);
   }
 
-  private handleGetClientId(
-    sender: ws_WebSocket,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _message: Message<MessageNames.clientID>
-  ) {
-    this.replyTo(sender, {
-      type: MessageNames.clientID,
+  private handleGetClientId(sender: ws_WebSocket) {
+    this.replyTo(sender, <Message<MessageNames.ClientID>>{
+      type: MessageNames.ClientID,
       payload: this.nextClientId,
-    } as Message<MessageNames.clientID>);
+    });
   }
 
-  private handleUpdateLastLine(
+  private handleAddLine(
     sender: ws_WebSocket,
-    message: Message<MessageNames.UpdateLastLine>
+    message: Message<MessageNames.AddLine>
   ): void {
+    this.allSvgLines.push(message.payload);
+    this.broadcastExcept(sender, message);
+  }
+
+  private handleUpdateLine(
+    sender: ws_WebSocket,
+    message: Message<MessageNames.UpdateLine>
+  ): void {
+    const indexLine = this.allSvgLines.findIndex(
+      (val) =>
+        val.idLine == message.payload.idLine &&
+        val.idClient == message.payload.idClient
+    );
+
+    if (indexLine == -1) {
+      this.allSvgLines.push(message.payload);
+    } else {
+      this.allSvgLines[indexLine] = message.payload;
+    }
+
     this.broadcastExcept(sender, message);
   }
 
@@ -100,14 +154,39 @@ export class SvgWebSocketServer extends MessageServer<Message<MessageNames>> {
     sender: ws_WebSocket,
     message: Message<MessageNames.UpdateSettings>
   ): void {
+    this.svgSettings = { ...this.svgSettings, ...message.payload };
+
     this.broadcastExcept(sender, message);
+  }
+
+  private handleClearCanvas(
+    sender: ws_WebSocket,
+    message: Message<MessageNames.ClearCanvas>
+  ): void {
+    this.allSvgLines = [];
+    this.broadcastExcept(sender, message);
+  }
+
+  private handleSendAllLines(
+    sender: ws_WebSocket,
+    message: Message<MessageNames.SendAllLines>
+  ): void {
+    this.allSvgLines = message.payload;
+
+    this.broadcastExcept(sender, message);
+  }
+
+  private handleGetAllLines(sender: ws_WebSocket): void {
+    this.replyTo(sender, <Message<MessageNames.SendAllLines>>{
+      type: MessageNames.SendAllLines,
+      payload: this.allSvgLines,
+    });
   }
 
   private handleError(
     requestor: ws_WebSocket,
     message: Message<MessageNames.Error>
   ): void {
-    console.error(message, new Error().name);
-    // this.broadcastExcept(requestor, message);
+    console.error(message, new Error().stack);
   }
 }

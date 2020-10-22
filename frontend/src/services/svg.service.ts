@@ -12,29 +12,54 @@ export class SvgWebSocketService {
   // ---------- Property ----------
   // -----------------------------------
 
-  private socket: WebSocket;
+  private socket!: WebSocket;
 
   private store: Store;
+
+  private connectionSettings: {
+    isSecore: boolean;
+    host: string;
+    port: number;
+    path: string;
+  };
+
+  private sendLineUpdateTimerId: number | undefined;
+
+  private sendLineUpdateInterval = 1000 / 15;
 
   // -----------------------------------
   // ---------- Constructor ----------
   // -----------------------------------
 
-  constructor(options: {
+  constructor(connectionSettings: {
     isSecore: boolean;
     host: string;
     port: number;
     path: string;
   }) {
-    // Create a socket instance
-    this.socket = new WebSocket(
-      `${options.isSecore ? "wss" : "ws"}://${options.host}:${options.port}/${
-        options.path
-      }`
-    );
+    this.connectionSettings = connectionSettings;
 
     // Get Vuex Store
     this.store = useStore();
+
+    this.connect();
+
+    this.ListenFromStore();
+  }
+
+  // -----------------------------------
+  // ---------- Setup Connection ----------
+  // -----------------------------------
+
+  private connect() {
+    console.log("Start Connection");
+
+    // Create a socket instance
+    this.socket = new WebSocket(
+      `${this.connectionSettings.isSecore ? "wss" : "ws"}://${
+        this.connectionSettings.host
+      }:${this.connectionSettings.port}/${this.connectionSettings.path}`
+    );
 
     // Open the socket
     this.socket.onopen = (event) => {
@@ -44,23 +69,15 @@ export class SvgWebSocketService {
       // Listen for messages
       this.socket.onmessage = this.handleMessage.bind(this);
 
-      // Listen for Errors
-      this.socket.onerror = this.handleConnectionError.bind(this);
-
-      // Listen for socket closes
-      this.socket.onclose = this.handleConnectionClose.bind(this);
-
-      // Send an initial message
-      this.sendData({
-        type: MessageNames.Test,
-        payload: "I am the client and I'm listening!",
-      });
-
       // Get the Client Id
       this.sendMsgRecieveClientId();
     };
 
-    this.ListenFromStore();
+    // Listen for Errors
+    this.socket.onerror = this.handleConnectionError.bind(this);
+
+    // Listen for socket closes
+    this.socket.onclose = this.handleConnectionClose.bind(this);
   }
 
   // -----------------------------------
@@ -77,6 +94,8 @@ export class SvgWebSocketService {
 
   private handleConnectionError(event: Event) {
     console.log("WebSocket Error: ", event);
+
+    this.socket.close();
   }
 
   // -----------------------------------
@@ -85,6 +104,10 @@ export class SvgWebSocketService {
 
   private handleConnectionClose(event: CloseEvent) {
     console.log("Client notified socket has closed", event);
+
+    setTimeout(() => {
+      this.connect();
+    }, 1000);
   }
 
   // -----------------------------------
@@ -93,11 +116,45 @@ export class SvgWebSocketService {
 
   private ListenFromStore() {
     this.store.subscribeAction({
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      before: (action, state) => {
+        switch (action.type) {
+          case ActionTypes.clearCanvas:
+            console.log(`Clear Canvas`);
+            this.sendMsgClearCanvas();
+            break;
+
+          default:
+            break;
+        }
+      },
       after: (action, state) => {
         switch (action.type) {
+          case ActionTypes.clearCanvas:
+            // Handled in bevore
+            break;
+
+          case ActionTypes.StartDrawing:
+            this.sendMsgAddLine(state.currentLine);
+            break;
+
+          case ActionTypes.DrawTo:
+            if (this.sendLineUpdateTimerId == undefined) {
+              this.sendLineUpdateTimerId = setTimeout(
+                () => (this.sendLineUpdateTimerId = undefined),
+                this.sendLineUpdateInterval
+              );
+              this.sendMsgUpdateLine(state.currentLine);
+            }
+            break;
+
           case ActionTypes.EndDrawing:
-            console.log(`Current Line Count: ${state.lines.length}`);
-            this.sendMsgUpdateLastLine(state.lines[state.lines.length - 1]);
+            if (
+              state.lines[state.lines.length - 1].idClient ==
+              this.store.state.clientId
+            ) {
+              this.sendMsgUpdateLine(state.lines[state.lines.length - 1]);
+            }
             break;
 
           default:
@@ -127,23 +184,38 @@ export class SvgWebSocketService {
     switch (data.type) {
       case MessageNames.Test:
         console.log(data);
-        this.handleMsgTest(data as Message<MessageNames.Test>);
-        break;
-
-      case MessageNames.UpdateLastLine:
-        this.handleMsgUpdateLastLine(
-          data as Message<MessageNames.UpdateLastLine>
-        );
+        this.handleMsgTest(<Message<MessageNames.Test>>data);
         break;
 
       case MessageNames.UpdateSettings:
         this.handleMsgUpdateSettings(
-          data as Message<MessageNames.UpdateSettings>
+          <Message<MessageNames.UpdateSettings>>data
         );
         break;
 
-      case MessageNames.clientID:
-        this.handleMsgRecieveClientId(data as Message<MessageNames.clientID>);
+      case MessageNames.AddLine:
+        this.handleMsgAddLine(<Message<MessageNames.AddLine>>data);
+        break;
+
+      case MessageNames.UpdateLine:
+        this.handleMsgUpdateLine(<Message<MessageNames.UpdateLine>>data);
+        break;
+
+      case MessageNames.ClientID:
+        this.handleMsgRecieveClientId(<Message<MessageNames.ClientID>>data);
+        break;
+
+      case MessageNames.ClearCanvas:
+        this.handleMsgClearCanvas();
+        break;
+
+      case MessageNames.SendAllLines:
+        this.handleMsgSendAllLines(<Message<MessageNames.SendAllLines>>data);
+        break;
+
+      case MessageNames.Error:
+        console.error("Error got from Backend: ", data);
+
         break;
 
       default:
@@ -157,10 +229,10 @@ export class SvgWebSocketService {
   // -----------------------------------
 
   public sendMsgTest(payload: string): void {
-    this.sendData({
+    this.sendData(<Message<MessageNames.Test>>{
       type: MessageNames.Test,
       payload: payload,
-    } as Message<MessageNames.Test>);
+    });
   }
 
   public handleMsgTest(message: Message<MessageNames.Test>): void {
@@ -172,10 +244,10 @@ export class SvgWebSocketService {
   // -----------------------------------
 
   public sendMsgError(payload: WsErrorMessage): void {
-    this.sendData({
+    this.sendData(<Message<MessageNames.Error>>{
       type: MessageNames.Error,
       payload: payload,
-    } as Message<MessageNames.Error>);
+    });
   }
 
   public handleMsgError(message: Message<MessageNames.Error>): void {
@@ -187,10 +259,10 @@ export class SvgWebSocketService {
   // -----------------------------------
 
   public sendMsgUpdateSettings(payload: ISvgSettings): void {
-    this.sendData({
+    this.sendData(<Message<MessageNames.UpdateSettings>>{
       type: MessageNames.UpdateSettings,
       payload: payload,
-    } as Message<MessageNames.UpdateSettings>);
+    });
   }
 
   public handleMsgUpdateSettings(
@@ -200,39 +272,92 @@ export class SvgWebSocketService {
   }
 
   // -----------------------------------
-  // ---------- Update Last Line ----------
+  // ---------- All Lines ----------
   // -----------------------------------
 
-  public sendMsgUpdateLastLine(payload: ISvgPath): void {
-    this.sendData({
-      type: MessageNames.UpdateLastLine,
+  public sendMsgSetAllLines(payload: ISvgPath[]): void {
+    this.sendData(<Message<MessageNames.SendAllLines>>{
+      type: MessageNames.SendAllLines,
       payload: payload,
-    } as Message<MessageNames.UpdateLastLine>);
+    });
   }
 
-  public handleMsgUpdateLastLine(
-    message: Message<MessageNames.UpdateLastLine>
+  public handleMsgSendAllLines(
+    message: Message<MessageNames.SendAllLines>
   ): void {
-    console.log(`Received UpdateLastLine Message ${message.payload}`);
+    console.log(`Received SendAllLines Message ${message.payload}`);
+
+    this.store.dispatch(ActionTypes.SetAllLines, message.payload);
   }
 
   // -----------------------------------
-  // ---------- Update Last Line ----------
+  // ---------- Add Line ----------
+  // -----------------------------------
+
+  public sendMsgAddLine(payload: ISvgPath): void {
+    this.sendData(<Message<MessageNames.AddLine>>{
+      type: MessageNames.AddLine,
+      payload: payload,
+    });
+  }
+
+  public handleMsgAddLine(message: Message<MessageNames.AddLine>): void {
+    console.log(`Received AddLine Message ${message.payload}`);
+
+    this.store.dispatch(ActionTypes.AddLine, message.payload);
+  }
+
+  // -----------------------------------
+  // ---------- Update Line ----------
+  // -----------------------------------
+
+  public sendMsgUpdateLine(payload: ISvgPath): void {
+    this.sendData(<Message<MessageNames.UpdateLine>>{
+      type: MessageNames.UpdateLine,
+      payload: payload,
+    });
+  }
+
+  public handleMsgUpdateLine(message: Message<MessageNames.UpdateLine>): void {
+    console.log(`Received UpdateLine Message ${message.payload}`);
+
+    this.store.dispatch(ActionTypes.UpdateLine, message.payload);
+  }
+
+  // -----------------------------------
+  // ---------- Recieve Client Id ----------
   // -----------------------------------
 
   public sendMsgRecieveClientId(): void {
-    this.sendData({
-      type: MessageNames.clientID,
+    this.sendData(<Message<MessageNames.ClientID>>{
+      type: MessageNames.ClientID,
       payload: undefined,
-    } as Message<MessageNames.clientID>);
+    });
   }
 
   public handleMsgRecieveClientId(
-    message: Message<MessageNames.clientID>
+    message: Message<MessageNames.ClientID>
   ): void {
     console.log(`Received ClientId Message ${message.payload}`);
     if (message.payload)
       this.store.dispatch(ActionTypes.SetClientId, message.payload);
+  }
+
+  // -----------------------------------
+  // ---------- Clear Canvas ----------
+  // -----------------------------------
+
+  public sendMsgClearCanvas(): void {
+    if (this.store.getters.canUndoLine)
+      this.sendData(<Message<MessageNames.ClearCanvas>>{
+        type: MessageNames.ClearCanvas,
+        payload: undefined,
+      });
+  }
+
+  public handleMsgClearCanvas(): void {
+    console.log(`Received ClearCanvas Message`);
+    this.store.dispatch(ActionTypes.clearCanvas, undefined);
   }
 
   // -----------------------------------

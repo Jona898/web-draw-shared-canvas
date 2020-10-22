@@ -2,6 +2,7 @@ import { Mutations, MutationTypes } from "./mutations";
 import { ActionContext, ActionTree } from "vuex";
 import { State } from ".";
 import { Point } from "@/models";
+import { ISvgPath } from "web-draw-shared-canvas-shared";
 
 /*
  * For Asynchronus Mutations.
@@ -17,6 +18,9 @@ export enum ActionTypes {
   UpdateLineColor = "UPDATE_LINE_COLOR",
   UndoLastLine = "UNDO_LAST_LINE",
   SetClientId = "SET_CLIENT_ID",
+  SetAllLines = "SET_ALL_LINES",
+  AddLine = "ADD_LINE",
+  UpdateLine = "UPDATE_LINE",
 }
 
 // Actions interface
@@ -59,6 +63,21 @@ export interface Actions {
     { commit }: AugmentedActionContext,
     clientId: number
   ): void;
+
+  [ActionTypes.AddLine](
+    { commit }: AugmentedActionContext,
+    line: ISvgPath
+  ): void;
+
+  [ActionTypes.UpdateLine](
+    { commit }: AugmentedActionContext,
+    line: ISvgPath
+  ): void;
+
+  [ActionTypes.SetAllLines](
+    { commit }: AugmentedActionContext,
+    lines: ISvgPath[]
+  ): void;
 }
 
 // define Actions
@@ -93,5 +112,17 @@ export const actions: ActionTree<State, State> & Actions = {
 
   [ActionTypes.SetClientId]({ commit }, clientId: number) {
     commit(MutationTypes.SetClientId, clientId);
+  },
+
+  [ActionTypes.AddLine]({ commit }, line: ISvgPath) {
+    commit(MutationTypes.AddLine, line);
+  },
+
+  [ActionTypes.UpdateLine]({ commit }, line: ISvgPath) {
+    commit(MutationTypes.UpdateLine, line);
+  },
+
+  [ActionTypes.SetAllLines]({ commit }, lines: ISvgPath[]) {
+    commit(MutationTypes.SetAllLines, lines);
   },
 };

@@ -3,23 +3,40 @@ import { WsErrorMessage } from "./ErrorMessage";
 
 export enum MessageNames {
   Error = "ERROR",
+
   Test = "TEST",
-  clientID = "CLIENT_ID",
-  UpdateLastLine = "UPDATE_LAST_LINE",
+
+  ClientID = "CLIENT_ID",
+
+  AddLine = "ADD_LINE",
+  UpdateLine = "UPDATE_LINE",
+  SendAllLines = "SEND_ALL_LINES",
+  GetAllLines = "GET_ALL_LINES",
+
   UpdateSettings = "UPDATE_SETTINGS",
+
+  ClearCanvas = "CLEAR_CANVAS",
 }
 
 type MessageGeneric = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key in MessageNames]: any;
+  [key in MessageNames]: unknown;
 };
 
 export interface MessageTypes extends MessageGeneric {
   [MessageNames.Error]: WsErrorMessage;
+
   [MessageNames.Test]: string;
+
+  [MessageNames.ClientID]: number | undefined;
+
+  [MessageNames.AddLine]: ISvgPath;
+  [MessageNames.UpdateLine]: ISvgPath;
+  [MessageNames.SendAllLines]: ISvgPath[];
+  [MessageNames.GetAllLines]: undefined;
+
   [MessageNames.UpdateSettings]: ISvgSettings;
-  [MessageNames.UpdateLastLine]: ISvgPath;
-  [MessageNames.clientID]: number | undefined;
+
+  [MessageNames.ClearCanvas]: undefined;
 }
 
 export interface Message<T extends keyof MessageTypes> {

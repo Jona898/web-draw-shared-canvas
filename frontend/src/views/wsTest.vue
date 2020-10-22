@@ -9,7 +9,7 @@
     <div><button @click="sendTest">Send Test</button></div>
     <div><button @click="sendUpdateSettings">Send Update Settings</button></div>
     <div>
-      <button @click="sendUpdateLastLine">Send Update Last Line</button>
+      <button @click="sendUpdateTestLine">Send Update Last Line</button>
     </div>
     <div><button @click="sendError">Send Error</button></div>
   </div>
@@ -39,10 +39,11 @@ export default defineComponent({
       });
     };
 
-    const sendUpdateLastLine = () => {
+    const sendUpdateTestLine = () => {
       console.log("Send Update Last Line");
-      svgWsService.sendMsgUpdateLastLine({
-        id: `${store.state.clientId}-123`,
+      svgWsService.sendMsgUpdateLine({
+        idClient: store.state.clientId,
+        idLine: 123456,
         path: "M10,90 L90,10",
         strokeColor: "#751612",
         strokeWidth: 9,
@@ -61,7 +62,7 @@ export default defineComponent({
     return {
       sendTest,
       sendUpdateSettings,
-      sendUpdateLastLine,
+      sendUpdateTestLine,
       sendError,
     };
   },

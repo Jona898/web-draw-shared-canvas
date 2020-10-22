@@ -19,7 +19,7 @@ type State = {
 
   lines: ISvgPath[];
 
-  currentLine: Omit<ISvgPath, "id" | "createdTime"> & {
+  currentLine: ISvgPath & {
     isDrawing: boolean;
   };
 };
@@ -37,6 +37,9 @@ const state: State = {
   lines: [],
 
   currentLine: {
+    idClient: -1,
+    idLine: -1,
+    createdTime: new Date(0),
     path: "",
     strokeColor: "#292929",
     strokeWidth: 8,

@@ -12,15 +12,9 @@ export type Getters = {
 
 // Getters
 export const getters: GetterTree<State, State> & Getters = {
-  getTitle: (state) => {
-    return state.settings.title;
-  },
+  getTitle: (state) => state.settings.title,
 
-  getCurrentLine: (state) => {
-    return state.currentLine;
-  },
+  getCurrentLine: (state) => state.currentLine,
 
-  canUndoLine: (state) => {
-    return state.lines.length > 0;
-  },
+  canUndoLine: (state) => state.lines.length > 0,
 };

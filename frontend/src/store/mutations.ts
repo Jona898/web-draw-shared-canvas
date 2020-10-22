@@ -1,5 +1,6 @@
 import { Point } from "@/models";
 import { MutationTree } from "vuex";
+import { ISvgPath } from "web-draw-shared-canvas-shared";
 import { State } from ".";
 
 /**
@@ -16,6 +17,9 @@ export enum MutationTypes {
   UpdateLineColor = "UPDATE_LINE_COLOR",
   UndoLastLine = "UNDO_LAST_LINE",
   SetClientId = "SET_CLIENT_ID",
+  SetAllLines = "SET_ALL_LINES",
+  AddLine = "ADD_LINE",
+  UpdateLine = "UPDATE_LINE",
 }
 
 // Define Mutation Prototypes
@@ -35,6 +39,12 @@ export interface Mutations<S = State> {
   [MutationTypes.UndoLastLine](state: S): void;
 
   [MutationTypes.SetClientId](state: S, clientId: number): void;
+
+  [MutationTypes.AddLine](state: S, line: ISvgPath): void;
+
+  [MutationTypes.UpdateLine](state: S, line: ISvgPath): void;
+
+  [MutationTypes.SetAllLines](state: S, lines: ISvgPath[]): void;
 }
 
 // Define Mutations
@@ -45,7 +55,10 @@ export const mutations: MutationTree<State> & Mutations = {
   },
 
   [MutationTypes.StartDrawing](state: State, startPoint: Point) {
+    state.currentLine.idClient = state.clientId;
+    state.currentLine.idLine = state.lineId++;
     state.currentLine.path += `M${startPoint.x},${startPoint.y} `;
+    state.currentLine.createdTime = new Date(Date.now());
     state.currentLine.isDrawing = true;
   },
 
@@ -58,13 +71,7 @@ export const mutations: MutationTree<State> & Mutations = {
     if (state.currentLine.isDrawing) {
       state.currentLine.path += `L${endPoint.x},${endPoint.y}`;
 
-      state.lines.push({
-        id: `${state.clientId}-${state.lineId++}`,
-        path: state.currentLine.path,
-        strokeColor: state.currentLine.strokeColor,
-        strokeWidth: state.currentLine.strokeWidth,
-        createdTime: new Date(Date.now()),
-      });
+      state.lines.push({ ...state.currentLine });
 
       state.currentLine.isDrawing = false;
       state.currentLine.path = "";
@@ -85,5 +92,26 @@ export const mutations: MutationTree<State> & Mutations = {
 
   [MutationTypes.SetClientId](state: State, clientId: number) {
     state.clientId = clientId;
+  },
+
+  [MutationTypes.SetAllLines](state: State, lines: ISvgPath[]) {
+    state.lines.length = lines.length;
+    lines.forEach((value, index) => (state.lines[index] = value));
+  },
+
+  [MutationTypes.AddLine](state: State, line: ISvgPath) {
+    state.lines.push(line);
+  },
+
+  [MutationTypes.UpdateLine](state: State, line: ISvgPath) {
+    const indexLine = state.lines.findIndex(
+      (val) => val.idLine == line.idLine && val.idClient == line.idClient
+    );
+
+    if (indexLine == -1) {
+      state.lines.push(line);
+    } else {
+      state.lines[indexLine] = line;
+    }
   },
 };
