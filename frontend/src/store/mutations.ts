@@ -1,6 +1,6 @@
 import { Point } from "@/models";
 import { MutationTree } from "vuex";
-import { ISvgPath } from "web-draw-shared-canvas-shared";
+import { ISvgPath, ISvgSettings } from "web-draw-shared-canvas-shared";
 import { State } from ".";
 
 /**
@@ -9,22 +9,25 @@ import { State } from ".";
 
 // Mutation Types
 export enum MutationTypes {
-  clearCanvas = "CLEAR_CANVAS",
   StartDrawing = "START_DRAWING",
   DrawTo = "DRAW_TO",
   EndDrawing = "END_DRAWING",
+  UpdateCurrentLineColor = "UPDATE_CURRENT_LINE_COLOR",
   UpdateBackgroundColor = "UPDATE_BACKGROUND_COLOR",
-  UpdateLineColor = "UPDATE_LINE_COLOR",
+
+  ClearCanvas = "CLEAR_CANVAS",
   UndoLastLine = "UNDO_LAST_LINE",
+
   SetClientId = "SET_CLIENT_ID",
   SetAllLines = "SET_ALL_LINES",
   AddLine = "ADD_LINE",
   UpdateLine = "UPDATE_LINE",
+  UpdateSettings = "UPDATE_SETTINGS",
 }
 
 // Define Mutation Prototypes
 export interface Mutations<S = State> {
-  [MutationTypes.clearCanvas](state: S): void;
+  [MutationTypes.ClearCanvas](state: S): void;
 
   [MutationTypes.StartDrawing](state: S, startPoint: Point): void;
 
@@ -34,7 +37,7 @@ export interface Mutations<S = State> {
 
   [MutationTypes.UpdateBackgroundColor](state: S, bgColor: string): void;
 
-  [MutationTypes.UpdateLineColor](state: S, lineColor: string): void;
+  [MutationTypes.UpdateCurrentLineColor](state: S, lineColor: string): void;
 
   [MutationTypes.UndoLastLine](state: S): void;
 
@@ -45,11 +48,13 @@ export interface Mutations<S = State> {
   [MutationTypes.UpdateLine](state: S, line: ISvgPath): void;
 
   [MutationTypes.SetAllLines](state: S, lines: ISvgPath[]): void;
+
+  [MutationTypes.UpdateSettings](state: S, lines: ISvgSettings): void;
 }
 
 // Define Mutations
 export const mutations: MutationTree<State> & Mutations = {
-  [MutationTypes.clearCanvas](state: State) {
+  [MutationTypes.ClearCanvas](state: State) {
     state.currentLine.isDrawing = false;
     state.lines.length = 0; // = [];
   },
@@ -82,7 +87,7 @@ export const mutations: MutationTree<State> & Mutations = {
     state.settings.backgroundColor = bgColor;
   },
 
-  [MutationTypes.UpdateLineColor](state: State, lineColor: string) {
+  [MutationTypes.UpdateCurrentLineColor](state: State, lineColor: string) {
     state.currentLine.strokeColor = lineColor;
   },
 
@@ -113,5 +118,9 @@ export const mutations: MutationTree<State> & Mutations = {
     } else {
       state.lines[indexLine] = line;
     }
+  },
+
+  [MutationTypes.UpdateSettings](state: State, settings: ISvgSettings) {
+    state.settings = settings;
   },
 };

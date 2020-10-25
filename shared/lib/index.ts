@@ -1,5 +1,6 @@
+export { assertUnreachable } from "./helper";
+
 export {
-  ISvgCombined,
   ISvgPath,
   ISvgSettings,
   Message,

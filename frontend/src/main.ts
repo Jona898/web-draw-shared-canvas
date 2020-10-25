@@ -10,4 +10,7 @@ createApp(App).use(useStore()).use(router).mount("#app");
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _svgWebSocketService = svgWebSocketService;
 
-setTimeout(() => svgWebSocketService.sendMsgTest("First Test Message"), 1000);
+// setTimeout(() => {
+//   console.log("Send first Test Message");
+//   svgWebSocketService.sendMsgTest("First Test Message");
+// }, 1000);

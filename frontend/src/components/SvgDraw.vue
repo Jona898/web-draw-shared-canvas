@@ -159,7 +159,7 @@ export default defineComponent({
         return store.state.currentLine.strokeColor;
       },
       set: (color) => {
-        store.dispatch(ActionTypes.UpdateLineColor, color);
+        store.dispatch(ActionTypes.UpdateCurrentLineColor, color);
       },
     });
 
@@ -178,7 +178,7 @@ export default defineComponent({
     // Line Movements
 
     function lineStart(event: MouseEvent & { layerX: number; layerY: number }) {
-      console.log("lineStart:", event);
+      // console.log("lineStart:", event);
       store.dispatch(ActionTypes.StartDrawing, {
         x: event.layerX,
         y: event.layerY,
@@ -186,12 +186,10 @@ export default defineComponent({
     }
 
     function lineMove(event: MouseEvent & { layerX: number; layerY: number }) {
-      console.log(
-        "State of is Drawing is: " + store.state.currentLine.isDrawing
-      );
+      // console.log(`State of is Drawing is: ${store.state.currentLine.isDrawing}`);
 
       if (store.state.currentLine.isDrawing) {
-        console.log("lineMove:", event);
+        // console.log("lineMove:", event);
 
         store.dispatch(ActionTypes.DrawTo, {
           x: event.layerX,
@@ -216,7 +214,7 @@ export default defineComponent({
     }
 
     function clean() {
-      store.dispatch(ActionTypes.clearCanvas, undefined);
+      store.dispatch(ActionTypes.ClearCanvas, undefined);
     }
 
     function download() {

@@ -1,6 +1,7 @@
 import { ISvgPath, ISvgSettings } from "web-draw-shared-canvas-shared";
 import {
   CommitOptions,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   createLogger,
   createStore,
   DispatchOptions,
@@ -71,7 +72,7 @@ const store: Store = createStore({
   mutations,
   actions,
   getters,
-  plugins: [createLogger()],
+  // plugins: [createLogger()],
   strict: true,
 });
 

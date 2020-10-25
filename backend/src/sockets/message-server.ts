@@ -12,6 +12,8 @@ export abstract class MessageServer<T> {
   protected abstract onStartConnection(socket: ws_WebSocket): void;
 
   protected readonly subscribeToMessages = (ws: ws_WebSocket): void => {
+    console.log("New Client Connected");
+
     ws.on("message", (data: ws_WebSocket.Data) => {
       if (typeof data === "string") {
         this.handleMessage(ws, JSON.parse(data));
@@ -35,7 +37,7 @@ export abstract class MessageServer<T> {
     currentClient: ws_WebSocket,
     message: Readonly<T>
   ): void {
-    this.wsServer.clients.forEach((client) => {
+    this.wsServer.clients.forEach(async (client) => {
       if (client !== currentClient && this.isAlive(client)) {
         client.send(JSON.stringify(message));
       }
@@ -43,18 +45,7 @@ export abstract class MessageServer<T> {
   }
 
   protected broadcastAll(message: Readonly<T>): void {
-    // let clients1: string[] = [];
-    // let clients2: string[] = [];
-
-    // this.wsServer.clients.forEach((value, value2, set) => {
-    //   clients1.push(JSON.stringify(value));
-    //   clients2.push(JSON.stringify(value2));
-    // });
-
-    // console.log(`const clients1= [${clients1.join(",")}]`);
-    // console.log(`const clients2= [${clients2.join(",")}]`);
-
-    this.wsServer.clients.forEach((client) => {
+    this.wsServer.clients.forEach(async (client) => {
       if (this.isAlive(client)) {
         client.send(JSON.stringify(message));
       }

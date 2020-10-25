@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc --build tsconfig.prod.json",
     "lint": "eslint ./src",
-    "start": "npm run build --env=production && node -r ./dist --env=production",
+    "start": "npm run build && set NODE_ENV=production && node -r ./dist",
     "start:dev": "nodemon --exec ts-node src/index.ts"
   },
   "dependencies": {

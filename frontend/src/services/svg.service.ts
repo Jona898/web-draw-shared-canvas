@@ -1,5 +1,6 @@
 import { ActionTypes, Store, useStore } from "@/store";
 import {
+  assertUnreachable,
   ISvgPath,
   ISvgSettings,
   Message,
@@ -25,7 +26,7 @@ export class SvgWebSocketService {
 
   private sendLineUpdateTimerId: number | undefined;
 
-  private sendLineUpdateInterval = 1000 / 15;
+  private sendLineUpdateInterval = 1000 / 20;
 
   // -----------------------------------
   // ---------- Constructor ----------
@@ -52,7 +53,7 @@ export class SvgWebSocketService {
   // -----------------------------------
 
   private connect() {
-    console.log("Start Connection");
+    // console.log("Start WebSocket Connection");
 
     // Create a socket instance
     this.socket = new WebSocket(
@@ -118,9 +119,10 @@ export class SvgWebSocketService {
     this.store.subscribeAction({
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       before: (action, state) => {
-        switch (action.type) {
-          case ActionTypes.clearCanvas:
-            console.log(`Clear Canvas`);
+        const actionType = <ActionTypes>action.type;
+        switch (actionType) {
+          case ActionTypes.ClearCanvas:
+            // console.log(`Clear Canvas`);
             this.sendMsgClearCanvas();
             break;
 
@@ -129,11 +131,8 @@ export class SvgWebSocketService {
         }
       },
       after: (action, state) => {
-        switch (action.type) {
-          case ActionTypes.clearCanvas:
-            // Handled in bevore
-            break;
-
+        const actionType = <ActionTypes>action.type;
+        switch (actionType) {
           case ActionTypes.StartDrawing:
             this.sendMsgAddLine(state.currentLine);
             break;
@@ -157,7 +156,32 @@ export class SvgWebSocketService {
             }
             break;
 
+          case ActionTypes.UndoLastLine:
+            this.sendMsgSetAllLines(state.lines);
+            break;
+
+          case ActionTypes.UpdateBackgroundColor:
+            this.sendMsgUpdateSettings(state.settings);
+            break;
+
+          // Handled in bevore
+          case ActionTypes.ClearCanvas:
+            break;
+
+          // Takes effekt, if you draw the next line
+          case ActionTypes.UpdateCurrentLineColor:
+            break;
+
+          // Send from Backend. doesn't need to handle again
+          case ActionTypes.SetClientId:
+          case ActionTypes.SetAllLines:
+          case ActionTypes.AddLine:
+          case ActionTypes.UpdateLine:
+          case ActionTypes.UpdateSettings:
+            break;
+
           default:
+            assertUnreachable(actionType);
             break;
         }
       },
@@ -169,7 +193,7 @@ export class SvgWebSocketService {
   // -----------------------------------
 
   private handleMessage(event: MessageEvent<string>): void {
-    console.log("Client received a message", event.data);
+    // console.log("Client received a message", event.data);
 
     let data: Message<MessageNames>;
 
@@ -183,7 +207,6 @@ export class SvgWebSocketService {
 
     switch (data.type) {
       case MessageNames.Test:
-        console.log(data);
         this.handleMsgTest(<Message<MessageNames.Test>>data);
         break;
 
@@ -215,11 +238,15 @@ export class SvgWebSocketService {
 
       case MessageNames.Error:
         console.error("Error got from Backend: ", data);
+        break;
 
+      // Message only sent to Backend and never revieved
+      case MessageNames.GetAllLines:
         break;
 
       default:
         console.error(`Received message of unknown type: "${data.type}"`);
+        assertUnreachable(data.type);
         break;
     }
   }
@@ -251,7 +278,7 @@ export class SvgWebSocketService {
   }
 
   public handleMsgError(message: Message<MessageNames.Error>): void {
-    console.log(`Received Error Message ${message.payload}`);
+    console.error(`Received Error Message ${message.payload}`);
   }
 
   // -----------------------------------
@@ -268,7 +295,8 @@ export class SvgWebSocketService {
   public handleMsgUpdateSettings(
     message: Message<MessageNames.UpdateSettings>
   ): void {
-    console.log(`Received UpdateSettings Message ${message.payload}`);
+    // console.log(`Received UpdateSettings Message ${message.payload}`);
+    this.store.dispatch(ActionTypes.UpdateSettings, message.payload);
   }
 
   // -----------------------------------
@@ -285,7 +313,7 @@ export class SvgWebSocketService {
   public handleMsgSendAllLines(
     message: Message<MessageNames.SendAllLines>
   ): void {
-    console.log(`Received SendAllLines Message ${message.payload}`);
+    // console.log(`Received SendAllLines Message ${message.payload}`);
 
     this.store.dispatch(ActionTypes.SetAllLines, message.payload);
   }
@@ -302,7 +330,7 @@ export class SvgWebSocketService {
   }
 
   public handleMsgAddLine(message: Message<MessageNames.AddLine>): void {
-    console.log(`Received AddLine Message ${message.payload}`);
+    // console.log(`Received AddLine Message ${message.payload}`);
 
     this.store.dispatch(ActionTypes.AddLine, message.payload);
   }
@@ -319,7 +347,7 @@ export class SvgWebSocketService {
   }
 
   public handleMsgUpdateLine(message: Message<MessageNames.UpdateLine>): void {
-    console.log(`Received UpdateLine Message ${message.payload}`);
+    // console.log(`Received UpdateLine Message ${message.payload}`);
 
     this.store.dispatch(ActionTypes.UpdateLine, message.payload);
   }
@@ -338,7 +366,7 @@ export class SvgWebSocketService {
   public handleMsgRecieveClientId(
     message: Message<MessageNames.ClientID>
   ): void {
-    console.log(`Received ClientId Message ${message.payload}`);
+    // console.log(`Received ClientId Message ${message.payload}`);
     if (message.payload)
       this.store.dispatch(ActionTypes.SetClientId, message.payload);
   }
@@ -356,8 +384,8 @@ export class SvgWebSocketService {
   }
 
   public handleMsgClearCanvas(): void {
-    console.log(`Received ClearCanvas Message`);
-    this.store.dispatch(ActionTypes.clearCanvas, undefined);
+    // console.log(`Received ClearCanvas Message`);
+    this.store.dispatch(ActionTypes.ClearCanvas, undefined);
   }
 
   // -----------------------------------

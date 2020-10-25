@@ -1,4 +1,5 @@
 import {
+  assertUnreachable,
   ISvgPath,
   ISvgSettings,
   Message,
@@ -30,14 +31,18 @@ export class SvgWebSocketServer extends MessageServer<Message<MessageNames>> {
   }
 
   protected onStartConnection(socket: ws_WebSocket): void {
-    this.handleGetAllLines(socket);
+    // Send the Start Data after 0.2s
+    setTimeout(() => {
+      this.handleGetAllLines(socket);
+      this.handleSendSettings(socket);
+    }, 200);
   }
 
   protected handleMessage(
     sender: ws_WebSocket,
     message: Message<MessageNames>
   ): void {
-    console.log("Recieved Message: ", message);
+    // console.log("Recieved Message: ", message);
 
     switch (message.type) {
       case MessageNames.Test:
@@ -98,6 +103,7 @@ export class SvgWebSocketServer extends MessageServer<Message<MessageNames>> {
             message: `Handler for Message Type is not defined in Backend`,
           },
         });
+        assertUnreachable(message.type);
         break;
     }
   }
@@ -157,6 +163,13 @@ export class SvgWebSocketServer extends MessageServer<Message<MessageNames>> {
     this.svgSettings = { ...this.svgSettings, ...message.payload };
 
     this.broadcastExcept(sender, message);
+  }
+
+  private handleSendSettings(sender: ws_WebSocket): void {
+    this.replyTo(sender, <Message<MessageNames.UpdateSettings>>{
+      type: MessageNames.UpdateSettings,
+      payload: this.svgSettings,
+    });
   }
 
   private handleClearCanvas(

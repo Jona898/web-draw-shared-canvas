@@ -2,7 +2,7 @@ import { Mutations, MutationTypes } from "./mutations";
 import { ActionContext, ActionTree } from "vuex";
 import { State } from ".";
 import { Point } from "@/models";
-import { ISvgPath } from "web-draw-shared-canvas-shared";
+import { ISvgPath, ISvgSettings } from "web-draw-shared-canvas-shared";
 
 /*
  * For Asynchronus Mutations.
@@ -10,17 +10,20 @@ import { ISvgPath } from "web-draw-shared-canvas-shared";
 
 // Action Types
 export enum ActionTypes {
-  clearCanvas = "CLEAR_CANVAS",
   StartDrawing = "START_DRAWING",
   DrawTo = "DRAW_TO",
   EndDrawing = "END_DRAWING",
+  UpdateCurrentLineColor = "UPDATE_CURRENT_LINE_COLOR",
   UpdateBackgroundColor = "UPDATE_BACKGROUND_COLOR",
-  UpdateLineColor = "UPDATE_LINE_COLOR",
+
+  ClearCanvas = "CLEAR_CANVAS",
   UndoLastLine = "UNDO_LAST_LINE",
+
   SetClientId = "SET_CLIENT_ID",
   SetAllLines = "SET_ALL_LINES",
   AddLine = "ADD_LINE",
   UpdateLine = "UPDATE_LINE",
+  UpdateSettings = "UPDATE_SETTINGS",
 }
 
 // Actions interface
@@ -33,7 +36,7 @@ type AugmentedActionContext = {
 
 // define Action Prototypes
 export interface Actions {
-  [ActionTypes.clearCanvas]({ commit }: AugmentedActionContext): void;
+  [ActionTypes.ClearCanvas]({ commit }: AugmentedActionContext): void;
 
   [ActionTypes.StartDrawing](
     { commit }: AugmentedActionContext,
@@ -52,7 +55,7 @@ export interface Actions {
     bgColor: string
   ): void;
 
-  [ActionTypes.UpdateLineColor](
+  [ActionTypes.UpdateCurrentLineColor](
     { commit }: AugmentedActionContext,
     lineColor: string
   ): void;
@@ -78,12 +81,17 @@ export interface Actions {
     { commit }: AugmentedActionContext,
     lines: ISvgPath[]
   ): void;
+
+  [ActionTypes.UpdateSettings](
+    { commit }: AugmentedActionContext,
+    settings: ISvgSettings
+  ): void;
 }
 
 // define Actions
 export const actions: ActionTree<State, State> & Actions = {
-  [ActionTypes.clearCanvas]({ commit }) {
-    commit(MutationTypes.clearCanvas, undefined);
+  [ActionTypes.ClearCanvas]({ commit }) {
+    commit(MutationTypes.ClearCanvas, undefined);
   },
 
   [ActionTypes.StartDrawing]({ commit }, startPoint: Point) {
@@ -102,8 +110,8 @@ export const actions: ActionTree<State, State> & Actions = {
     commit(MutationTypes.UpdateBackgroundColor, bgColor);
   },
 
-  [ActionTypes.UpdateLineColor]({ commit }, lineColor: string) {
-    commit(MutationTypes.UpdateLineColor, lineColor);
+  [ActionTypes.UpdateCurrentLineColor]({ commit }, lineColor: string) {
+    commit(MutationTypes.UpdateCurrentLineColor, lineColor);
   },
 
   [ActionTypes.UndoLastLine]({ commit }) {
@@ -124,5 +132,9 @@ export const actions: ActionTree<State, State> & Actions = {
 
   [ActionTypes.SetAllLines]({ commit }, lines: ISvgPath[]) {
     commit(MutationTypes.SetAllLines, lines);
+  },
+
+  [ActionTypes.UpdateSettings]({ commit }, settings: ISvgSettings) {
+    commit(MutationTypes.UpdateSettings, settings);
   },
 };

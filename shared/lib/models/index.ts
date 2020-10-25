@@ -1,4 +1,4 @@
-export { ISvgCombined, ISvgPath, ISvgSettings } from "./Svg";
+export { ISvgPath, ISvgSettings } from "./Svg";
 export {
   Message,
   MessageNames,
